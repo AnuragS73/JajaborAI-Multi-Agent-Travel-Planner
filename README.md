@@ -116,9 +116,9 @@ docker run --env-file .env -p 8000:8000 jajabor-ai
 
 ## Project Status
 
-Jajabor AI is successfully deployed on Render and is under active development.
+Jajabor AI is successfully deployed on Render and is under active development without MCP. The current version supports flight information, hotel recommendations, AI-generated travel itineraries, estimated travel budgets, and PostgreSQL-based state persistence.
 
-The current version supports flight information, hotel recommendations, AI-generated travel itineraries, estimated travel budgets, and PostgreSQL-based state persistence.
+Now it is under development to integrate MCP.
 
 ### Future Enhancements
 
