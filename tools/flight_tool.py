@@ -88,7 +88,7 @@ def f_airport_country_matchs(airport:dict,country_code:str) -> bool:
 
 def f_get_best_airport_for_country(country_code:str):
     """
-    Generates the ebst airport from each country
+    Generates the best airport from each country
     """
     preferred_airport = COUNTRY_MAIN_AIRPORT.get(country_code)
 
@@ -107,7 +107,7 @@ def f_get_best_airport_for_country(country_code:str):
 
             score = 0
 
-            if "internationa" in name:
+            if "international" in name:
                 score = score + 50
             if "intl" in name:
                 score = score + 40
