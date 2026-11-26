@@ -102,7 +102,7 @@ def f_agent_flight(state: TravelState):
 
 
 # ==================================
-# ======== Agent2: Hotel ==========
+# ======== Agent2: Hotel ===========
 # ==================================
 
 def f_agent_hotel(state: TravelState):
@@ -115,5 +115,94 @@ def f_agent_hotel(state: TravelState):
     return {
         "hotel_results": hotel_results,
         "messages": [AIMessage(content="Hotel info fetched")],
+        "llm_calls":  state.get("llm_calls",0) + 1
+    }
+
+# ======================================
+# ======== Agent3: Itinerary ===========
+# ======================================
+
+
+
+def f_agent_itinerary(state: TravelState):
+    """
+    This function creates itinerary agent
+    """
+    itinerary_prompt = f"""
+Create a complete travel itinerary.
+
+User Query:
+{state['user_query']}
+
+Flight Results:
+{state['flight_results']}
+
+Hotel Results:
+{state['hotel_results']}
+
+Make the itinerary practical, budget-aware, and easy to follow.
+"""
+
+    response = llm.invoke(
+        [
+            SystemMessage(content="You are an expert travel planner"),
+            HumanMessage(content=itinerary_prompt)
+        ]
+    )
+
+    return {
+        "itinerary": response.content,
+        "message": [response],
+        "llm_calls":  state.get("llm_calls",0) + 1
+    }
+
+
+# ======================================
+# ======== Agent4: Final Response ======
+# ======================================
+
+def f_agent_final(state: TravelState):
+    """
+    This function creates final response agent
+    """
+    final_prompt = f"""
+Generate a final travel response for the use.
+
+User Query:
+{state['user_query']}
+
+Flight Results:
+{state['flight_results']}
+
+Hotel Results:
+{state['hotel_results']}
+
+Itinerary:
+{state['itinerary']}
+
+Format the final answer beautifully using these sections:
+
+1. Trip Summary
+2. Flight Information
+3. Hotel suggestion
+4. Day to day itinerary
+5. Estimated budget
+6. Final recommendations
+
+Important:
+- Be clear and practical
+- Mention that flight API may not provide the ticket prices if pricing is unavailable
+- Keep response useful for real travel plan
+
+"""
+    response = llm.invoke(
+        [
+            SystemMessage(content="You are professional AI travel planner"),
+            HumanMessage(content=final_prompt)
+        ]
+    )
+
+    return {
+        "messages": [response],
         "llm_calls":  state.get("llm_calls",0) + 1
     }
