@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Disable LangSmith tracing
+os.environ["LANGSMITH_TRACING"] = "false"
+os.environ["LANGCHAIN_TRACING_V2"] = "false"
+
 os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 
@@ -26,6 +30,7 @@ from langchain_core.messages import(
 )
 
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from tools.tavily_tool import f_tavily_search
 from tools.flight_tool import f_search_flights
@@ -59,15 +64,27 @@ if not GROQ_API_KEY:
         "GROQ_API_KEY is missing. Please add it to .env file"
     )
 
+# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# =========================
-# ========= LLM ===========
-# =========================
+# if not GOOGLE_API_KEY:
+#     raise ValueError(
+#         "GOOGLE_API_KEY is missing. Please add it to .env file"
+#     )
+
+
+# ================================
+# ========= LLM (Groq) ===========
+# ================================
 
 llm = ChatGroq(
     model="openai/gpt-oss-120b",
     api_key=GROQ_API_KEY
 )
+
+# llm2 = ChatGoogleGenerativeAI(
+#     model="gemini-4-hydrogen",
+#     api_key=GOOGLE_API_KEY
+# )
 
 
 # =========================
@@ -205,4 +222,84 @@ Important:
     return {
         "messages": [response],
         "llm_calls":  state.get("llm_calls",0) + 1
+    }
+
+
+# ======================================
+# ======== Build The Graph =============
+# ======================================
+
+graph = StateGraph(TravelState)
+
+## Node
+graph.add_node("flight_agent", f_agent_flight)
+graph.add_node("hotel_agent", f_agent_hotel)
+graph.add_node("itinerary_agent", f_agent_itinerary)
+graph.add_node("final_agent", f_agent_final)
+
+## Agent connection in sequence
+graph.add_edge(START, "flight_agent")
+graph.add_edge("flight_agent", "hotel_agent")
+graph.add_edge("hotel_agent", "itinerary_agent")
+graph.add_edge("itinerary_agent", "final_agent")
+graph.add_edge("final_agent", END)
+
+
+# ======================================
+# ======== PostGre Connection ==========
+# ======================================
+
+DATABASE_URL = f_get_db_url()
+
+_conn = psycopg.connect(
+    DATABASE_URL,
+    autocommit=True,
+    row_factory=dict_row
+)
+
+pg_checkpoint = PostgresSaver(_conn)
+pg_checkpoint.setup()
+
+travel_graph = graph.compile(checkpointer=pg_checkpoint)
+
+
+# ======================================
+# ============== Fast API ==============
+# ======================================
+def f_run_travel_agent(user_input: str,thread_id: str | None = None):
+    """
+    This is the final function for backend.
+    This creates Fast API interface
+    """
+    if not thread_id:
+        create_thread_id = uuid.uuid4().hex
+        thread_id = f"user_{create_thread_id}"
+
+    config = {
+        "configurable":{"thread_id":thread_id}
+    }
+
+    result = travel_graph.invoke(
+        {
+            "messages":[
+                HumanMessage(content=user_input)
+            ],
+            "user_query": user_input,
+            "flight_results": "",
+            "hotel_results": "",
+            "itinerary":"",
+            "llm_calls": 0
+        },
+        config=config
+    )
+
+    final_answer = result["messages"][-1].content
+
+    return {
+        "thread_id": thread_id,
+        "answer": final_answer,
+        "flight_results": result.get("flight_results",""),
+        "hotel_results": result.get("hotel_results",""),
+        "itinerary": result.get("itinerary",""),
+        "llm_calls": result.get("llm_calls",0)
     }
