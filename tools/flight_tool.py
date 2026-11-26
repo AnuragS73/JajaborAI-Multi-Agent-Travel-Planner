@@ -63,4 +63,63 @@ def f_country_name_to_countrycode(text:str):
 
 
     for alias,code in COUNTRY_ALIASES.items():
-        
+        if alias in text:
+            return code
+
+    return None
+
+def f_airport_country_matchs(airport:dict,country_code:str) -> bool:
+
+    airport_country = str(airport.get("country", "")).upper().strip()
+
+    if airport_country == country_code:
+        return True
+
+    try:
+        country = pycountry.countries.get(alpha_2=country_code)
+        if country and airport_country.lower() == country.name.lower():
+            return True
+
+    except Exception:
+        pass
+
+    return False
+
+
+def f_get_best_airport_for_country(country_code:str):
+    """
+    Generates the ebst airport from each country
+    """
+    preferred_airport = COUNTRY_MAIN_AIRPORT.get(country_code)
+
+    if preferred_airport in AIRPORTS:
+        return preferred_airport
+
+    candidates = []
+
+    for iata, airport in AIRPORTS.items():
+        if not iata:
+            continue
+
+        if f_airport_country_matchs(airport,country_code):
+            name = str(airport.get("name","")).lower()
+            city = str(airport.get("city","")).lower()
+
+            score = 0
+
+            if "internationa" in name:
+                score = score + 50
+            if "intl" in name:
+                score = score + 40
+            if "capital" in name:
+                score = score + 20
+            if city:
+                score = score + 5
+
+            candidates.append((score,iata))
+
+    if not candidates:
+        return None
+
+    candidates.sort(reverse=True)
+    return candidates[0][1]
