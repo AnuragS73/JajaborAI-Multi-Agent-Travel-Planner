@@ -81,9 +81,11 @@ llm = ChatGroq(
     api_key=GROQ_API_KEY
 )
 
-# llm2 = ChatGoogleGenerativeAI(
-#     model="gemini-4-hydrogen",
-#     api_key=GOOGLE_API_KEY
+
+
+# llm2 = ChatGroq(
+#     model="openai/gpt-oss-20b",
+#     api_key=GROQ_API_KEY
 # )
 
 
