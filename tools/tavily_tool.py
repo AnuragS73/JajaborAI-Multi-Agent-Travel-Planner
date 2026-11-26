@@ -8,7 +8,7 @@ client = TavilyClient(
     api_key=os.getenv("TAVILY_API_KEY")
 )
 
-def tavily_search(query):
+def f_tavily_search(query):
     """
     Internet search
     """
