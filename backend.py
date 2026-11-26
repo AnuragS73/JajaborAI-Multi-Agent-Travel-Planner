@@ -205,8 +205,7 @@ Format the final answer beautifully using these sections:
 2. Flight Information
 3. Hotel suggestion
 4. Day to day itinerary
-5. Estimated budget
-6. Final recommendations
+5. Final recommendations
 
 Important:
 - Be clear and practical
