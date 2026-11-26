@@ -116,7 +116,15 @@ docker run --env-file .env -p 8000:8000 jajabor-ai
 
 ## Project Status
 
-Under active development. Render deployment is planned. Flight information depends on API availability, and budget estimates are indicative. The application does not support actual travel bookings.
+Jajabor AI is successfully deployed on Render and is under active development.
+
+The current version supports flight information, hotel recommendations, AI-generated travel itineraries, estimated travel budgets, and PostgreSQL-based state persistence.
+
+### Future Enhancements
+
+- Integration of Indian Railways information, including train search, routes and schedules.
+- Enhanced travel planning with multiple transportation options.
+- Continuous improvements to AI-generated recommendations and user experience.
 
 ## License
 
