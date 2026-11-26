@@ -22,4 +22,4 @@ api_key = os.getenv("AVAIATIONSTACK_API_KEY")
 
 DEFAULT_ORIGIN_IATA = os.getenv("DEFAULT_ORIGIN_IATA","CCU")
 
-BASE_URL = "https://api.aviationstack.com/v1/floghts"
+BASE_URL = "https://api.aviationstack.com/v1/flights"
